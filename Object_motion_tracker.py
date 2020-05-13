@@ -80,6 +80,9 @@ while True:
     list_cy = []
     if(contours != []):
         for c in contours:
+            (x, y, w, h) = cv2.boundingRect(c)
+            cv2.rectangle(frame, (x,y), (x+w, y+h), (0, 255, 0), 3)
+            
             M = cv2.moments(c)
             if(M["m00"] != 0):
                 cx = int(M["m10"] / M["m00"])
@@ -92,10 +95,10 @@ while True:
     # drawing the line which is to be used to find angle
     #cv2.line(frame, (int(x_max/2), 0), (int(x_max/2), int(y_max)),
     #         (0, 255, 0), 3)
-    cv2.line(frame, (0, int(y_max/2)+100), (x_max,int(y_max/2)+100) ,
-             (0, 255, 0), 3)
-    cv2.line(frame, (0, int(y_max/2)-100), (x_max, int(y_max/2)-100),
-             (0, 255, 0), 3)
+    #cv2.line(frame, (0, int(y_max/2)+100), (x_max,int(y_max/2)+100) ,
+    #         (0, 255, 0), 3)
+    #cv2.line(frame, (0, int(y_max/2)-100), (x_max, int(y_max/2)-100),
+    #         (0, 255, 0), 3)
     # Draw a circle showing the part that was detected. The list 
     # thing is used to stabilise the readings a little bit. 
     # Ask Tony Bhaiya.
@@ -103,7 +106,7 @@ while True:
     list_cy.append(cy)
     point = (mode(list_cx),mode(list_cy))
     
-    cv2.circle(frame, point, 5, (0, 255, 0), 3)
+    #cv2.circle(frame, point, 5, (0, 255, 0), 3)
     
     # check if the object is in the left half of the window or the 
     # right half of the window
