@@ -10,9 +10,10 @@ import numpy as np
 import math
 import serial
 
-#ser = serial.Serial("/dev/ttyACM0", 9600)
-#ser.flushInput()
+ser = serial.Serial("/dev/ttyACM0", 9600)
+ser.flushInput()
 value = 0
+angleP = 90
 
 def left(a):
     return (int(90-a))
@@ -55,44 +56,48 @@ while True:
     
     if(contours != []):
         for c in contours:
-            M = cv2.moments(c)
-            if(M["m00"] != 0):
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
-            else:
-                cx, cy = cx, cy
-    else:
-        cx, cy = int(x_max/2), int(y_max/2)
+            area = cv2.contourArea(c)
+            
+            if(area > 4150):
+                print("OBJECT DETECTED!!")
+                point, radius = cv2.minEnclosingCircle(c)
+                x, y = int(point[0]), int(point[1])
+                cv2.circle(frame, (x, y), int(radius),
+                           (0, 255, 0), 3)
+                center = (x, y)
                 
-    center = (cx, cy)
-    #cv2.circle(frame, center, 5, (0, 255, 0), 3)
+            else:
+                center = (int(x_max/2), int(y_max/2))
+    
+    else:
+        print("NO OBJECT DETECTED!")
+        center = (int(x_max/2), int(y_max/2))
 
     perpendicular = math.sqrt((center[0]-int(x_max/2))**2)
     base = center[1]
+    
     if(base != 0):
         angle = math.atan(perpendicular/base)
         angle = angle * 180/3.14
         
-        # low pass filter
-        angleP = angle
-        angle = 0.94 * angleP + 0.06 * angle
-    else:
-        angle = 90
-    if(cx > x_threshold):
-        value = left(angle)
-    elif(cx < x_threshold):
-        value = right(angle)
+        if(center[0] > x_threshold):
+            value = left(angle)
+        elif(center[0] < x_threshold):
+            value = right(angle)
+        else:
+            value = 90
+            
     else:
         value = 90
         
-    #ser.write(b' ' + str(value).encode('ascii') + b'\n')
+    ser.write(b' ' + str(value).encode('ascii') + b'\n')
     
     frame = cv2.flip(frame, 1)
     cv2.imshow('Object detected', frame)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
     
-#ser.close()
+ser.close()
 cap.release()
 cv2.destroyAllWindows()
     
