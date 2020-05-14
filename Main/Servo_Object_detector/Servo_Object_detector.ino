@@ -14,8 +14,8 @@ void setup() {
 
 void loop() {
   while(Serial.available()>0)
-  SerialData = Serial.readStringUntil("\n");
-
+  SerialData = Serial.readStringUntil(" ");
+  Serial.println(SerialData);
   value = (SerialData).toInt();
 
   myservo.write(value);
