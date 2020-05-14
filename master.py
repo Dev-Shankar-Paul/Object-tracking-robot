@@ -10,8 +10,8 @@ import numpy as np
 import math
 import serial
 
-ser = serial.Serial("/dev/ttyACM0", 9600)
-ser.flushInput()
+#ser = serial.Serial("/dev/ttyACM0", 9600)
+#ser.flushInput()
 value = 0
 
 def left(a):
@@ -20,10 +20,23 @@ def left(a):
 def right(a):
     return (int(90+a))
 
+def TestCam(source):
+    cap = cv2.VideoCapture(source)
+    check = cap.read()
+    if(check[0] == False):
+        print("Unable to access preferred camera!\n\nSwitching to "+
+              "default camera!\n")
+        return 0
+    else:
+        print("Using preferred camera!\n")
+        return source
+
 blue_lower = np.array([36, 111, 255])
 blue_upper = np.array([153, 255, 255])
 
-cap = cv2.VideoCapture(0)
+# Preferred camera
+VideoCamera = 2
+cap = cv2.VideoCapture(TestCam(VideoCamera))
 
 x_max = 640
 y_max = 480
@@ -52,7 +65,7 @@ while True:
         cx, cy = int(x_max/2), int(y_max/2)
                 
     center = (cx, cy)
-    cv2.circle(frame, center, 5, (0, 255, 0), 3)
+    #cv2.circle(frame, center, 5, (0, 255, 0), 3)
 
     perpendicular = math.sqrt((center[0]-int(x_max/2))**2)
     base = center[1]
@@ -72,14 +85,14 @@ while True:
     else:
         value = 90
         
-    ser.write(b' ' + str(value).encode('ascii') + b'\n')
+    #ser.write(b' ' + str(value).encode('ascii') + b'\n')
     
     frame = cv2.flip(frame, 1)
     cv2.imshow('Object detected', frame)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
     
-ser.close()
+#ser.close()
 cap.release()
 cv2.destroyAllWindows()
     
