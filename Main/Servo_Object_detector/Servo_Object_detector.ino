@@ -13,7 +13,7 @@ void setup() {
 }
 
 void loop() {
-  if(Serial.available()>0)
+  while(Serial.available()>0)
   SerialData = Serial.readStringUntil("\n");
 
   value = (SerialData).toInt();
