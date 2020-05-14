@@ -32,8 +32,8 @@ def TestCam(source):
         print("Using preferred camera!\n")
         return source
 
-blue_lower = np.array([36, 111, 255])
-blue_upper = np.array([153, 255, 255])
+blue_lower = np.array([100, 181, 73])
+blue_upper = np.array([124, 255, 255])
 
 # Preferred camera
 VideoCamera = 2
@@ -44,6 +44,7 @@ y_max = 480
 x_threshold = x_max/2
 
 while True:
+    ser.flushOutput()
     ret, frame = cap.read()
     blurred = cv2.GaussianBlur(frame, (5,5), 3)
     
