@@ -6,14 +6,21 @@ Created on Tue May 12 17:25:31 2020
 @author: dsp
 """
 import cv2
-import numpy as np
 import math
 import serial
+import Set_Colour as sc
+import sys
 
-ser = serial.Serial("/dev/ttyACM0", 9600)
-ser.flushInput()
+# Calling the Set_Colour module to set which object to be detected
+ranges = sc.Set_Colour()
+
+try:
+    ser = serial.Serial("/dev/ttyACM0", 9600)
+except:
+    print("Please check your Arduino connection !")
+    sys.exit(0)
+
 value = 0
-angleP = 90
 
 def left(a):
     return (int(90-a))
@@ -32,8 +39,8 @@ def TestCam(source):
         print("Using preferred camera!\n")
         return source
 
-blue_lower = np.array([100, 181, 73])
-blue_upper = np.array([124, 255, 255])
+lower = ranges[0]
+upper = ranges[1]
 
 # Preferred camera
 VideoCamera = 2
@@ -44,13 +51,17 @@ y_max = 480
 x_threshold = x_max/2
 
 while True:
-    ser.flushOutput()
-    ret, frame = cap.read()
-    blurred = cv2.GaussianBlur(frame, (5,5), 3)
     
+    # Flushing the Serial Input and Output to prevent lagging
+    ser.flushOutput()
+    ser.flushInput()
+    
+    ret, frame = cap.read()
+    
+    blurred = cv2.GaussianBlur(frame, (5,5), 3)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     
-    mask = cv2.inRange(hsv, blue_lower, blue_upper)
+    mask = cv2.inRange(hsv, lower, upper)
     
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL,
                                            cv2.CHAIN_APPROX_NONE)
@@ -58,6 +69,9 @@ while True:
     if(contours != []):
         for c in contours:
             area = cv2.contourArea(c)
+            
+            # 4150 is a threshold value in order to ignore the
+            # smaller and irrelevant contours
             
             if(area > 4150):
                 print("OBJECT DETECTED!!")
@@ -77,6 +91,7 @@ while True:
     perpendicular = math.sqrt((center[0]-int(x_max/2))**2)
     base = center[1]
     
+    # Finding the angle to be sent to the Arduino
     if(base != 0):
         angle = math.atan(perpendicular/base)
         angle = angle * 180/3.14
@@ -90,8 +105,13 @@ while True:
             
     else:
         value = 90
-        
-    ser.write(b' ' + str(value).encode('ascii') + b'\n')
+    
+    # Write "value" to Arduino through the Serial port
+    try:
+        ser.write(str(value).encode('ascii') + b';')
+    except:
+        print("Please check your Arduino connection !")
+        sys.exit(0)
     
     frame = cv2.flip(frame, 1)
     cv2.imshow('Object detected', frame)
@@ -101,6 +121,5 @@ while True:
 ser.close()
 cap.release()
 cv2.destroyAllWindows()
-    
     
     
